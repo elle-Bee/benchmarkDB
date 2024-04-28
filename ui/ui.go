@@ -3,60 +3,70 @@ package ui
 import (
 	"fmt"
 
-	"github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-func SetupUI() {
+type model struct {
+	choices  []string
+	cursor   int
+	selected map[int]struct{}
+}
 
-	p := widgets.NewParagraph()
-	p.Text = "Please select an operation!"
-
-	operations := []string{"Create", "Read", "Update", "Delete"}
-
-	l := widgets.NewList()
-	l.Title = "Operations"
-	l.Rows = operations
-	l.TextStyle = termui.NewStyle(termui.ColorWhite)
-	l.WrapText = false
-	l.SelectedRow = 0
-	l.SelectedRowStyle = termui.NewStyle(termui.ColorWhite, termui.ColorBlack)
-	l.SetRect(0, 2, 30, len(operations)+2)
-
-	grid := termui.NewGrid()
-	grid.SetRect(0, 0, 50, len(operations)+4)
-	grid.Set(
-		termui.NewRow(1.0,
-			termui.NewCol(1.0, p),
-			termui.NewCol(1.0, l),
-		),
-	)
-
-	termui.Render(grid)
-	for _, operation := range operations {
-		fmt.Println(operation)
+func InitialModel() model {
+	return model{
+		choices:  []string{"Create", "Read", "Update", "Delete"},
+		selected: make(map[int]struct{}),
 	}
+}
 
-	termuiEvents := termui.PollEvents()
-	for {
-		select {
-		case e := <-termuiEvents:
-			if e.Type == termui.KeyboardEvent {
-				switch e.ID {
-				case "<Up>":
-					l.ScrollUp()
-					termui.Render(grid)
-				case "<Down>":
-					l.ScrollDown()
-					termui.Render(grid)
-				case "<Enter>":
-					selectedIndex := l.SelectedRow
-					p.Text = "Selected: " + operations[selectedIndex]
-					termui.Render(grid)
-				case "q", "Q":
-					return
-				}
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q", "Q":
+			return m, tea.Quit
+		case "up":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "down":
+			if m.cursor < len(m.choices) {
+				m.cursor++
+			}
+		case "enter", " ":
+			_, ok := m.selected[m.cursor]
+			if ok {
+				delete(m.selected, m.cursor)
+			} else {
+				m.selected[m.cursor] = struct{}{}
 			}
 		}
 	}
+
+	return m, nil
+}
+
+func (m model) View() string {
+	s := "What operation would you like to compare? \n"
+
+	for i, choice := range m.choices {
+		cursor := " "
+		if m.cursor == i {
+			cursor = ">"
+		}
+
+		checked := " "
+		if _, ok := m.selected[i]; ok {
+			checked = "x"
+		}
+
+		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+	}
+
+	s += "\nPress Q to quit....\n"
+	return s
 }

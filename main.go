@@ -3,16 +3,15 @@ package main
 import (
 	ui "benchmarkDB/ui"
 	"fmt"
+	"os"
 
-	"github.com/gizak/termui/v3"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-
-	if err := termui.Init(); err != nil {
-		fmt.Printf("failed to initialize termui: %v", err)
+	p := tea.NewProgram(ui.InitialModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error occured: %v", err)
+		os.Exit(1)
 	}
-	defer termui.Close()
-
-	ui.SetupUI()
 }
