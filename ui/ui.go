@@ -43,6 +43,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				delete(m.selected, m.cursor)
 			} else {
 				m.selected[m.cursor] = struct{}{}
+				go runProgram(m.choices[m.cursor])
 			}
 		}
 	}
@@ -54,7 +55,7 @@ func (m model) View() string {
 	s := "What operation would you like to compare? \n"
 
 	for i, choice := range m.choices {
-		cursor := " "
+		cursor := " >"
 		if m.cursor == i {
 			cursor = ">"
 		}
