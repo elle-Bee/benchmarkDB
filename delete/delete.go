@@ -1,0 +1,5 @@
+package delete
+
+func Delete() {
+
+}

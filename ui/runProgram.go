@@ -2,6 +2,9 @@ package ui
 
 import (
 	"benchmarkDB/create"
+	"benchmarkDB/delete"
+	"benchmarkDB/read"
+	"benchmarkDB/update"
 	"fmt"
 	"strings"
 )
