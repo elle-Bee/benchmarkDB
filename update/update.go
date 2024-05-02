@@ -12,7 +12,7 @@ import (
 )
 
 func Update() {
-	tables := []string{"table1", "table2", "table3", "table4"} // Representing MySQL tables
+	tables := []string{"table1"} // Representing MySQL tables
 	var record string
 	var prevVal string
 	var newVal string
@@ -20,13 +20,13 @@ func Update() {
 	var mysqlDB *sql.DB
 
 	fmt.Print("Enter the record you want to update: ")
-	fmt.Scanln(&record)
+	fmt.Scanf("%v", &record)
 
 	fmt.Print("What was the previous value: ")
-	fmt.Scanln(&prevVal)
+	fmt.Scanln("%v", &prevVal)
 
 	fmt.Print("Enter the new value: ")
-	fmt.Scanln(&newVal)
+	fmt.Scanln("%v", &newVal)
 
 	// Single Threaded
 	for _, table := range tables {
@@ -73,16 +73,18 @@ func Update() {
 
 func generateMongoDBQuery(database, collection, record, prevVal, newVal string) interface{} {
 	// Generate MongoDB update query
-	return bson.M{
+	updateQuery := bson.M{
 		"$set": bson.M{
 			record: newVal,
 		},
+		record: prevVal,
 	}
+	return updateQuery
 }
 
 func generateMySQLQuery(table, record, prevVal, newVal string) string {
 	// Generate MySQL update query
-	return fmt.Sprintf("UPDATE %s SET %s='%s' WHERE %s='%s'", table, record, newVal, record, prevVal)
+	return fmt.Sprintf("UPDATE %s SET %s = '%s' WHERE %s = '%s'", table, record, newVal, record, prevVal)
 }
 
 func singleThreadedUpdate(client interface{}, table, record, prevVal, newVal string) error {
