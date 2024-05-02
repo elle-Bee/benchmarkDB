@@ -11,6 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
 )
 
 func Read() {
@@ -39,12 +42,16 @@ func Read() {
 
 	// Single Threaded
 	fmt.Println("************Performing single-threaded reads***************")
-	for _, table := range tables {
+	singleThreadedMongoTimes := make([]float64, len(tables))
+	singleThreadedMySQLTimes := make([]float64, len(tables))
+
+	for i, table := range tables {
 		start := time.Now()
 		err := singleThreadedRead(mongoClient, table, field, year)
 		if err != nil {
 			fmt.Printf("Error reading %s in MongoDB: %v\n", table, err)
 		} else {
+			singleThreadedMongoTimes[i] = time.Since(start).Seconds()
 			fmt.Println("Time taken for single-threaded MongoDB read in", table+":", time.Since(start))
 		}
 
@@ -53,6 +60,7 @@ func Read() {
 		if err != nil {
 			fmt.Printf("Error reading %s in MySQL: %v\n", table, err)
 		} else {
+			singleThreadedMySQLTimes[i] = time.Since(start).Seconds()
 			fmt.Println("    Time taken for single-threaded MySQL read in", table+":", time.Since(start))
 		}
 	}
@@ -60,12 +68,16 @@ func Read() {
 
 	// Multi Threaded
 	fmt.Println("************Performing multi-threaded reads***************")
-	for _, table := range tables {
+	multiThreadedMongoTimes := make([]float64, len(tables))
+	multiThreadedMySQLTimes := make([]float64, len(tables))
+
+	for i, table := range tables {
 		start := time.Now()
 		err := multiThreadedRead(mongoClient, table, field, year)
 		if err != nil {
 			fmt.Printf("Error reading %s in multi-threaded MongoDB: %v\n", table, err)
 		} else {
+			multiThreadedMongoTimes[i] = time.Since(start).Seconds()
 			fmt.Println("    Time taken for multi-threaded MongoDB read in", table+":", time.Since(start))
 		}
 
@@ -74,10 +86,21 @@ func Read() {
 		if err != nil {
 			fmt.Printf("Error reading %s in multi-threaded MySQL: %v\n", table, err)
 		} else {
+			multiThreadedMySQLTimes[i] = time.Since(start).Seconds()
 			fmt.Println("    Time taken for multi-threaded MySQL read in", table+":", time.Since(start))
 		}
 	}
 	fmt.Println("**********************************************************")
+
+	// Plotting
+	err = plotTimeBarChart("Time taken for Single-Threaded Reads", tables, singleThreadedMongoTimes, singleThreadedMySQLTimes)
+	if err != nil {
+		fmt.Println("Error plotting single-threaded reads:", err)
+	}
+	err = plotTimeBarChart("Time taken for Multi-Threaded Reads", tables, multiThreadedMongoTimes, multiThreadedMySQLTimes)
+	if err != nil {
+		fmt.Println("Error plotting multi-threaded reads:", err)
+	}
 
 	if err != nil { // Check if there's any error occurred during the reads
 		fmt.Println("Program completed with errors")
@@ -180,4 +203,39 @@ func generateMongoDBFilter(field, year string) interface{} {
 
 func generateMySQLQuery(table, field, year string) string {
 	return fmt.Sprintf("SELECT * FROM %s WHERE %s = '%s'", table, field, year)
+}
+
+func plotTimeBarChart(title string, labels []string, mongoTimes, mysqlTimes []float64) error {
+	p := plot.New()
+
+	p.Title.Text = title
+	p.Y.Label.Text = "Time (s)"
+
+	bars1, err := plotter.NewBarChart(plotter.Values(mongoTimes), vg.Points(50))
+	if err != nil {
+		return err
+	}
+	bars1.LineStyle.Width = vg.Length(0)
+	bars1.Color = plotter.DefaultLineStyle.Color
+	bars1.Offset = -vg.Points(25)
+	p.Add(bars1)
+
+	bars2, err := plotter.NewBarChart(plotter.Values(mysqlTimes), vg.Points(50))
+	if err != nil {
+		return err
+	}
+	bars2.LineStyle.Width = vg.Length(0)
+	bars2.Color = plotter.DefaultLineStyle.Color
+	bars2.Offset = vg.Points(25)
+	p.Add(bars2)
+
+	p.Legend.Add("MongoDB", bars1)
+	p.Legend.Add("MySQL", bars2)
+	p.NominalX(labels...)
+
+	if err := p.Save(8*vg.Inch, 4*vg.Inch, "plot_read.png"); err != nil {
+		return err
+	}
+
+	return nil
 }

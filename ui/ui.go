@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -43,7 +44,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				delete(m.selected, m.cursor)
 			} else {
 				m.selected[m.cursor] = struct{}{}
-				go runProgram(m.choices[m.cursor])
+				// Run the program directly from here
+				option := m.choices[m.cursor]
+				option = strings.ToLower(strings.ReplaceAll(option, " ", ""))
+				runProgram(option)
 			}
 		}
 	}

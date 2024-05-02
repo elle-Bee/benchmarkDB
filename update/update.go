@@ -11,6 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
 )
 
 func Update() {
@@ -24,7 +27,7 @@ func Update() {
 	var err error // Declare err outside of the mongoClient initialization
 
 	// Initialize MongoDB client
-	mongoClient, err = initMongoClient() // Assign to err without :=
+	mongoClient, err = initMongoClient()
 	if err != nil {
 		fmt.Println("Error initializing MongoDB client:", err)
 		return
@@ -32,7 +35,7 @@ func Update() {
 	defer mongoClient.Disconnect(context.Background())
 
 	// Initialize MySQL client
-	mysqlDB, err = initMySQLClient() // Add this line to initialize mysqlDB
+	mysqlDB, err = initMySQLClient()
 	if err != nil {
 		fmt.Println("Error initializing MySQL client:", err)
 		return
@@ -41,12 +44,16 @@ func Update() {
 
 	// Single Threaded
 	fmt.Println("************Performing single-threaded updates***************")
+	var mongoTimes []float64
+	var mysqlTimes []float64
+
 	for _, table := range tables {
 		start := time.Now()
 		err := singleThreadedUpdate(mongoClient, table, field, record, prevVal, newVal)
 		if err != nil {
 			fmt.Printf("Error updating %s in MongoDB: %v\n", table, err)
 		} else {
+			mongoTimes = append(mongoTimes, time.Since(start).Seconds())
 			fmt.Println("Time taken for single-threaded MongoDB update in", table+":", time.Since(start))
 		}
 
@@ -55,6 +62,7 @@ func Update() {
 		if err != nil {
 			fmt.Printf("Error updating %s in MySQL: %v\n", table, err)
 		} else {
+			mysqlTimes = append(mysqlTimes, time.Since(start).Seconds())
 			fmt.Println("    Time taken for single-threaded MySQL update in", table+":", time.Since(start))
 		}
 	}
@@ -80,6 +88,12 @@ func Update() {
 		}
 	}
 	fmt.Println("*************************************************************")
+
+	// Plotting
+	err = plotTimeBarChart("Time taken for Updates", tables, mongoTimes, mysqlTimes)
+	if err != nil {
+		fmt.Println("Error plotting update times:", err)
+	}
 
 	if err != nil { // Check if there's any error occurred during the updates
 		fmt.Println("Program completed with errors")
@@ -176,4 +190,39 @@ func generateMongoDBQuery(collection, database, field, record, prevVal, newVal s
 
 func generateMySQLQuery(table, field, record, prevVal, newVal string) string {
 	return fmt.Sprintf("UPDATE %s SET %s = '%s' WHERE Name = '%s' AND %s = '%s'", table, field, newVal, record, field, prevVal)
+}
+
+func plotTimeBarChart(title string, labels []string, mongoTimes, mysqlTimes []float64) error {
+	p := plot.New()
+
+	p.Title.Text = title
+	p.Y.Label.Text = "Time (s)"
+
+	bars1, err := plotter.NewBarChart(plotter.Values(mongoTimes), vg.Points(50))
+	if err != nil {
+		return err
+	}
+	bars1.LineStyle.Width = vg.Length(0)
+	bars1.Color = plotter.DefaultLineStyle.Color
+	bars1.Offset = -vg.Points(25)
+	p.Add(bars1)
+
+	bars2, err := plotter.NewBarChart(plotter.Values(mysqlTimes), vg.Points(50))
+	if err != nil {
+		return err
+	}
+	bars2.LineStyle.Width = vg.Length(0)
+	bars2.Color = plotter.DefaultLineStyle.Color
+	bars2.Offset = vg.Points(25)
+	p.Add(bars2)
+
+	p.Legend.Add("MongoDB", bars1)
+	p.Legend.Add("MySQL", bars2)
+	p.NominalX(labels...)
+
+	if err := p.Save(8*vg.Inch, 4*vg.Inch, "plot_update.png"); err != nil {
+		return err
+	}
+
+	return nil
 }

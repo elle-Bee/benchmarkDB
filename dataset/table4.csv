@@ -1,4 +1,4 @@
-Name,School,Job Description,Department,Earnings,Year
+Name,School,Job,Department,Earnings,Year
 Don Potter,University of Akron,Assistant Lecturer,Social Work,2472,2019
 Emily Potter,The Ohio State University,Administrative Assistant 3,Arts and Sciences | Chemistry and Biochemistry Administration,48538.02,2022
 Carol Jean Potter,The Ohio State University,Associate Professor-Clinical,Pediatrics,22722.8,2013
@@ -14636,7 +14636,6 @@ Tamara Lee,Ohio University,CUSTODIAL WORKER 1,CUSTODIAL SERVICES,32826.09,2012
 ShinHee Lee,Ohio University,Post Doctoral Fellow,Edison Biotechnology Institute,36837.55,2013
 Hannah Lee,Miami University,Assistant Professor,Marketing,158209.02,2020
 Shawn T Lee,The Ohio State University,Auxiliary Law Enforcement Ofcr,Special Duty,2446.7,2017
-Chang Lee,The Ohio State University,Professor,OARDC Food Animal Health,147378.08,2019
 Cheryl T Lee,The Ohio State University,Chair,Urology,794981.58,2017
 Younghwa Lee,Miami University,ArmstrongChairEmergTech&Prof,Information Systems and Analytics,222144.46,2020
 Ji Sun Lee,The Ohio State University,Post Doctoral Scholar,EHE Human Sciences,47826.09,2020
