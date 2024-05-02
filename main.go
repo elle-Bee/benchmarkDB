@@ -21,7 +21,7 @@ func main() {
 
 	// Connection to MySql
 
-	sqldb, err := sql.Open("mysql", "root:manage@tcp(localhost:3306)/mydb")
+	sqldb, err := sql.Open("mysql", "MYMYSQL_USERNAME:SQL_PASS@tcp(localhost:3306)/MYSQL_DATABASE")
 	if err != nil {
 		fmt.Println("Error connecting to database:", err)
 		return
@@ -36,7 +36,7 @@ func main() {
 	fmt.Println("Connected to MySQL database!")
 
 	// connection to MongoDB
-	const uri = "mongodb://localhost:27017/mydb"
+	const uri = "mongodb://localhost:27017/MONGODB_DATABASE"
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 

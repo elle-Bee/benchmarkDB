@@ -139,7 +139,7 @@ func initMongoClient() (*mongo.Client, error) {
 }
 
 func initMySQLClient() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:manage@tcp(localhost:3306)/mydb")
+	db, err := sql.Open("mysql", ":SQL_PASStcp(localhost:3306)/MYSQL_DATABASE")
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func SingleThreadedInsert(client interface{}, tables []string, data []Record) er
 	case *mongo.Client:
 		mongoClient := c
 		for _, table := range tables {
-			collection := mongoClient.Database("mydb").Collection(table)
+			collection := mongoClient.Database("MONGODB_DATABASE").Collection(table)
 			for _, record := range data {
 				_, err := collection.InsertOne(context.Background(), record)
 				if err != nil {
@@ -239,7 +239,7 @@ func plotGraph(singleThreadedMongoDBTime, singleThreadedMySQLTime, multiThreaded
 	p.NominalX(labels...)
 
 	// Save the plot to a file
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "plot_create.png"); err != nil {
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./plots/plot_create.png"); err != nil {
 		fmt.Println("Error saving plot:", err)
 	}
 }

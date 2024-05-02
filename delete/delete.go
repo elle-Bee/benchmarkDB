@@ -205,7 +205,7 @@ func plotGraph(mongoTimes, mysqlTimes []float64, tables []string) {
 	}
 
 	// Save the plot to a PNG file
-	err = p.Save(6*vg.Inch, 4*vg.Inch, "plot_delete.png")
+	err = p.Save(6*vg.Inch, 4*vg.Inch, "./plots/plot_delete.png")
 	if err != nil {
 		fmt.Println("Error saving plot:", err)
 		os.Exit(1)
@@ -230,7 +230,7 @@ func initMongoClient() (*mongo.Client, error) {
 }
 
 func initMySQLClient() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:manage@tcp(localhost:3306)/mydb")
+	db, err := sql.Open("mysql", ":SQL_PASStcp(localhost:3306)/MYSQL_DATABASE")
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func singleThreadedDelete(client interface{}, table string, data []create.Record
 	switch c := client.(type) {
 	case *mongo.Client:
 		mongoClient := c
-		collection := mongoClient.Database("mydb").Collection(table)
+		collection := mongoClient.Database("MONGODB_DATABASE").Collection(table)
 		for _, record := range data {
 			filter := bson.M{"Name": record.Name, "Year": record.Year} // Assuming Name and Year as unique identifiers
 			_, err := collection.DeleteOne(context.Background(), filter)

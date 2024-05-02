@@ -116,7 +116,7 @@ func singleThreadedRead(client interface{}, table, field, year string) error {
 	case *mongo.Client:
 		mongoClient := c
 		filter := generateMongoDBFilter(field, year)
-		cursor, err := mongoClient.Database("mydb").Collection(table).Find(context.Background(), filter)
+		cursor, err := mongoClient.Database("MONGODB_DATABASE").Collection(table).Find(context.Background(), filter)
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func initMongoClient() (*mongo.Client, error) {
 
 func initMySQLClient() (*sql.DB, error) {
 	// Initialize MySQL client
-	db, err := sql.Open("mysql", "root:manage@tcp(localhost:3306)/mydb")
+	db, err := sql.Open("mysql", "MYSQL_USERNAME:SQL_PASStcp(localhost:3306)/MYSQL_DATABASE")
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func plotTimeBarChart(title string, labels []string, mongoTimes, mysqlTimes []fl
 	p.Legend.Add("MySQL", bars2)
 	p.NominalX(labels...)
 
-	if err := p.Save(8*vg.Inch, 4*vg.Inch, "plot_read.png"); err != nil {
+	if err := p.Save(8*vg.Inch, 4*vg.Inch, "./PLOTS/plot_read.png"); err != nil {
 		return err
 	}
 

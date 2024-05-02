@@ -123,7 +123,7 @@ func initMongoClient() (*mongo.Client, error) {
 
 func initMySQLClient() (*sql.DB, error) {
 	// Initialize MySQL client
-	db, err := sql.Open("mysql", "root:manage@tcp(localhost:3306)/mydb")
+	db, err := sql.Open("mysql", "MYSQL_USERNAME:SQL_PASStcp(localhost:3306)/MYSQL_DATABASE")
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func singleThreadedUpdate(client interface{}, table, field, record, prevVal, new
 	case *mongo.Client:
 		mongoClient := c
 		updateQuery := generateMongoDBQuery(table, "", field, record, prevVal, newVal)
-		_, err := mongoClient.Database("mydb").Collection(table).UpdateOne(context.TODO(), bson.M{"Name": record}, updateQuery)
+		_, err := mongoClient.Database("MONGODB_DATABASE").Collection(table).UpdateOne(context.TODO(), bson.M{"Name": record}, updateQuery)
 		return err
 	case *sql.DB:
 		mysqlDB := c
@@ -220,7 +220,7 @@ func plotTimeBarChart(title string, labels []string, mongoTimes, mysqlTimes []fl
 	p.Legend.Add("MySQL", bars2)
 	p.NominalX(labels...)
 
-	if err := p.Save(8*vg.Inch, 4*vg.Inch, "plot_update.png"); err != nil {
+	if err := p.Save(8*vg.Inch, 4*vg.Inch, "./PLOTSplot_update.png"); err != nil {
 		return err
 	}
 
