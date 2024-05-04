@@ -7,3 +7,5 @@ A program that comapres the performace of MySQL vs MongoDB in performing:
 - Delete
 
 based on the their latencies to perform these operations.
+
+![](./assets/ui.png)
